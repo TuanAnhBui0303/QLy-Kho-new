@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Trị Kho - Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="navbar">
+        <h1 >
+            <a href="TrangChu.html" class="logo-link">
+                <span class="logo-icon">📦</span> ADMIN-TRA CỨU TỒN KHO
+            </a>
+        </h1>
+        <div class="nav-search">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔎 Tìm theo mã hoặc Tên...">
+        </div>
+        <a href="TrangChu.html" class="nav-btn">🔐 Đăng Xuất</a>
+
+    </div>
+
+    <div class="container">
+        <div class="row">
+            
+            <!-- Form Nhập/Xuất bên trái -->
+            <div class="col-4">
+                <div class="card">
+                    <h3>Tạo Phiếu Nhập / Xuất</h3>
+                    <form id="inventoryForm">
+                        <div class="form-group">
+                            <label>Mã Hàng (SKU):</label>
+                            <input type="text" id="sku" placeholder="Ví dụ: SKU-9901" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tên Sản Phẩm:</label>
+                            <input type="text" id="productName" placeholder="Ví dụ: Đế cao su mẫu A" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Loại Giao Dịch:</label>
+                            <select id="type">
+                                <option value="IN">Nhập Kho (+)</option>
+                                <option value="OUT">Xuất Kho (-)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Số Lượng:</label>
+                            <input type="number" id="quantity" min="1" value="1" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Lưu Dữ Liệu</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bảng Dữ Liệu bên phải -->
+            <div class="col-8">
+                <div class="card">
+                    <h3>Quản Lý Tồn Kho</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã SKU</th>
+                                <th>Tên Sản Phẩm</th>
+                                <th>Vị Trí</th>
+                                <th>Số Lượng</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody">
+                            <!-- JavaScript sẽ tự đổ dữ liệu vào đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
