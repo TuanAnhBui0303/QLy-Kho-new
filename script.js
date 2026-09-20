@@ -1,6 +1,11 @@
-var danhSachKho = [];
+// 1. TẠO DỮ LIỆU MẶC ĐỊNH (3 SẢN PHẨM MẪU SẴN CÓ ĐỂ DEMO NGAY)
+var danhSachKho = [
+    { maSku: "SKU-9901", tenSp: "Đế cao su mẫu A", viTri: "Kệ A1 - Tầng 2", soLuong: 150 },
+    { maSku: "SKU-4412", tenSp: "Keo dán chuyên dụng P66", viTri: "Kệ B3 - Tầng 1", soLuong: 45 },
+    { maSku: "SKU-1049", tenSp: "Da bò nguyên tấm Nâu", viTri: "Kho C - Ô 12", soLuong: 5 }
+];
 
-// 1. HÀM VẼ BẢNG DỮ LIỆU
+// 2. HÀM VẼ BẢNG DỮ LIỆU
 function veBangKho(tuKhoa) {
     var bangBody = document.getElementById("inventoryTableBody");
     if (!bangBody) return;
@@ -65,7 +70,7 @@ function veBangKho(tuKhoa) {
         dong.appendChild(oSoLuong);
         dong.appendChild(oTrangThai);
 
-        if (window.location.pathname.includes("admin.html")) {
+        if (window.location.pathname.includes("Admin.html")) {
             var oThaoTac = document.createElement("td");
             var nutXoa = document.createElement("button");
             nutXoa.innerText = "Xóa";
@@ -91,7 +96,7 @@ function veBangKho(tuKhoa) {
     }
 }
 
-// 2. TÌM KIẾM REAL-TIME
+// 3. TÌM KIẾM REAL-TIME
 var oTimKiem = document.getElementById("searchInput");
 if (oTimKiem) {
     oTimKiem.addEventListener("input", function() {
@@ -99,30 +104,85 @@ if (oTimKiem) {
     });
 }
 
-// 3. TẢI DỮ LIỆU TỪ API TRONG FILE API.JS VÀ CHẠY
+// 4. KHI TRANG TẢI XONG: VẼ BẢNG NGAY + NẾU CÓ SERVER THÌ MỚI LẤY THÊM DỮ LIỆU
 document.addEventListener("DOMContentLoaded", function() {
-    // Gọi hàm từ file api.js
-    fetchDanhSachKho().then(function(data) {
-        danhSachKho = data;
-        veBangKho();
-    });
-});
-// Xử lý sự kiện form đăng nhập
-var formLogin = document.getElementById("loginForm");
-if (formLogin) {
-    formLogin.addEventListener("submit", function(e) {
-        e.preventDefault();
-        var user = document.getElementById("username").value;
-        var pass = document.getElementById("password").value;
+    // Hiện ngay 3 sản phẩm mặc định ra màn hình
+    veBangKho();
 
-        // Gọi hàm từ api.js để kiểm tra với CSDL
-        guiyeuCauLogin(user, pass).then(function(res) {
-            if (res.success) {
-                alert("Đăng nhập thành công!");
-                window.location.href = "admin.html"; // Chuyển sang trang admin
-            } else {
-                alert(res.message);
+    // Nếu có chạy server thì lấy thêm/đè dữ liệu từ API, nếu không có server thì vẫn giữ 3 sản phẩm mẫu
+    if (typeof fetchDanhSachKho === "function") {
+        fetchDanhSachKho().then(function(data) {
+            if (data && data.length > 0) {
+                danhSachKho = data;
+                veBangKho();
             }
         });
+    }
+});
+
+// 5. XỬ LÝ FORM THÊM HÀNG (DÀNH CHO TRANG ADMIN)
+var formInventory = document.getElementById("inventoryForm");
+if (formInventory) {
+    formInventory.addEventListener("submit", function(e) {
+        e.preventDefault();
+        var skuVal = document.getElementById("sku").value;
+        var nameVal = document.getElementById("productName").value;
+        var typeVal = document.getElementById("type").value;
+        var qtyVal = parseInt(document.getElementById("quantity").value) || 1;
+
+        // Tìm xem sản phẩm đã có chưa
+        var tonTai = false;
+        for (var i = 0; i < danhSachKho.length; i++) {
+            if (danhSachKho[i].maSku === skuVal) {
+                if (typeVal === "IN") {
+                    danhSachKho[i].soLuong += qtyVal;
+                } else {
+                    danhSachKho[i].soLuong = Math.max(0, danhSachKho[i].soLuong - qtyVal);
+                }
+                tonTai = true;
+                break;
+            }
+        }
+
+        // Nếu chưa có thì thêm mới
+        if (!tonTai) {
+            danhSachKho.push({
+                maSku: skuVal,
+                tenSp: nameVal,
+                viTri: "Kệ mới",
+                soLuong: typeVal === "IN" ? qtyVal : 0
+            });
+        }
+
+        veBangKho();
+        formInventory.reset();
+    });
+}
+
+// 6. XỬ LÝ XUẤT FILE EXCEL
+var btnExcel = document.getElementById("btnExportExcel");
+if (btnExcel) {
+    btnExcel.addEventListener("click", function() {
+        if (!danhSachKho || danhSachKho.length === 0) {
+            alert("Hiện chưa có dữ liệu tồn kho để xuất file!");
+            return;
+        }
+
+        var excelData = danhSachKho.map(function(item, index) {
+            return {
+                "STT": index + 1,
+                "Mã SKU": item.maSku || "",
+                "Tên Sản Phẩm": item.tenSp || "",
+                "Vị Trí": item.viTri || "Chưa xếp",
+                "Số Lượng Tồn": item.soLuong,
+                "Trạng Thái": item.soLuong < 10 ? "Sắp hết!" : "An toàn"
+            };
+        });
+
+        var worksheet = XLSX.utils.json_to_sheet(excelData);
+        var workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCaoTonKho");
+
+        XLSX.writeFile(workbook, "Bao_Cao_Ton_Kho_Realtime.xlsx");
     });
 }
